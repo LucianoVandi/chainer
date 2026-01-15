@@ -1,0 +1,26 @@
+services:
+  chainer:
+    container_name: chainer
+    build: ./.docker
+    image: chainer/php-8.5-cli-alpine3.23:1.0
+    tty: true
+    volumes:
+      - ./:/var/www
+    environment:
+      - COMPOSER_MEMORY_LIMIT=-1
+  composer:
+    container_name: chainer-composer
+    build: ./.docker
+    image: chainer/php-8.5-cli-alpine3.23:1.0
+    volumes:
+      - ./:/var/www
+    working_dir: /var/www
+    command: ["composer", "install"]
+  test:
+    container_name: chainer-test
+    build: ./.docker
+    image: chainer/php-8.5-cli-alpine3.23:1.0
+    volumes:
+      - ./:/var/www
+    working_dir: /var/www
+    command: ["composer", "test"]
