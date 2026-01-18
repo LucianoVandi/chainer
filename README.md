@@ -7,6 +7,13 @@
 Chainer is a tiny PSR-15 middleware queue. It takes an ordered list of middleware and
 executes them in sequence, acting as the request handler for the chain.
 
+## Design Rationale
+
+- Minimal API surface to keep the learning curve small.
+- Strict types and explicit exceptions to make failures obvious.
+- Resolver is pluggable so you can integrate containers or custom logic without coupling.
+- Callable middleware support to showcase modern PHP and functional-style composition.
+
 ## Installation
 
 You can install the package via composer:
@@ -20,7 +27,6 @@ composer require lvandi/chainer
 ```php
 use Lvandi\Chainer\Chainer;
 use Lvandi\Chainer\DefaultResolver;
-use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -44,6 +50,20 @@ $chainer = new Chainer($queue);
 $result = $chainer->handle($request);
 ```
 
+### Example: Two Middleware + Terminal
+
+```php
+$queue = [
+    function (ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface {
+        return $handler->handle($request);
+    },
+    new HelloMiddleware($response),
+];
+
+$chainer = new Chainer($queue);
+$result = $chainer->handle($request);
+```
+
 ### Resolver
 
 The default resolver supports:
@@ -54,6 +74,8 @@ The default resolver supports:
 Example with a PSR-11 container:
 
 ```php
+use Psr\Container\ContainerInterface;
+
 $container = /* ContainerInterface */;
 $resolver = new DefaultResolver($container);
 

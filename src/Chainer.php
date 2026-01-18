@@ -33,7 +33,7 @@ class Chainer implements RequestHandlerInterface
     public function __construct(array $queue, ?MiddlewareResolverInterface $resolver = null)
     {
         if (empty($queue)) {
-            throw new EmptyQueueException();
+            throw new EmptyQueueException('Middleware queue is empty. Provide at least one middleware.');
         }
 
         $this->queue = array_values($queue);
@@ -53,7 +53,7 @@ class Chainer implements RequestHandlerInterface
     {
         // Verifica se la coda è esaurita o se non ci sono middleware disponibili.
         if (empty($this->queue) || !array_key_exists($this->position, $this->queue)) {
-            throw new NoRemainingMiddlewareException();
+            throw new NoRemainingMiddlewareException('No remaining middleware in the queue.');
         }
 
         // Continua l'elaborazione se c'è almeno un middleware nella coda.

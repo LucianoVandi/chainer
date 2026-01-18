@@ -30,18 +30,24 @@ final class DefaultResolver implements MiddlewareResolverInterface
                 if ($resolved instanceof MiddlewareInterface) {
                     return $resolved;
                 }
-                throw new InvalidMiddlewareException();
+                throw new InvalidMiddlewareException(
+                    'Container resolved an invalid middleware for id "' . $middleware . '".'
+                );
             }
 
             if (class_exists($middleware)) {
                 if (!is_subclass_of($middleware, MiddlewareInterface::class)) {
-                    throw new InvalidMiddlewareException();
+                    throw new InvalidMiddlewareException(
+                        'Class "' . $middleware . '" must implement ' . MiddlewareInterface::class . '.'
+                    );
                 }
 
                 return new $middleware();
             }
         }
 
-        throw new InvalidMiddlewareException();
+        throw new InvalidMiddlewareException(
+            'Unable to resolve middleware of type "' . get_debug_type($middleware) . '".'
+        );
     }
 }

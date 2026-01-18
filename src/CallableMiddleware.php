@@ -29,7 +29,9 @@ final class CallableMiddleware implements MiddlewareInterface
     {
         $response = ($this->callable)($request, $handler);
         if (!$response instanceof ResponseInterface) {
-            throw new InvalidMiddlewareException();
+            throw new InvalidMiddlewareException(
+                'Callable middleware must return a ' . ResponseInterface::class . '.'
+            );
         }
 
         return $response;
