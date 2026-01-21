@@ -104,6 +104,23 @@ Coverage via Docker:
 docker-compose run --rm test composer test-coverage
 ```
 
+## Error Handling
+
+Chainer throws explicit exceptions to make failures obvious:
+- `EmptyQueueException`: queue is empty at construction time.
+- `NoRemainingMiddlewareException`: you called `handle()` after the queue is exhausted.
+- `InvalidMiddlewareException`: a resolver returned a non-middleware or a callable returned a non-response.
+
+Example:
+
+```php
+try {
+    $chainer = new Chainer([]);
+} catch (\Lvandi\Chainer\Exception\EmptyQueueException $e) {
+    // Handle empty queue
+}
+```
+
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
