@@ -90,6 +90,29 @@ $queue = [
 $chainer = new Chainer($queue, $resolver);
 ```
 
+### ContainerResolver + ResolverChain
+
+If you want strict container-based resolution and explicit composition:
+
+```php
+use Lvandi\Chainer\ContainerResolver;
+use Lvandi\Chainer\ResolverChain;
+
+$container = /* ContainerInterface */;
+
+$resolver = new ResolverChain([
+    new ContainerResolver($container),
+    new DefaultResolver(),
+]);
+
+$queue = [
+    'app.middleware',
+    SomeMiddleware::class,
+];
+
+$chainer = new Chainer($queue, $resolver);
+```
+
 ## Testing
 
 ```bash

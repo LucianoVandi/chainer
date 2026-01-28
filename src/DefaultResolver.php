@@ -25,16 +25,6 @@ final class DefaultResolver implements MiddlewareResolverInterface
         }
 
         if (is_string($middleware)) {
-            if ($this->container !== null && $this->container->has($middleware)) {
-                $resolved = $this->container->get($middleware);
-                if ($resolved instanceof MiddlewareInterface) {
-                    return $resolved;
-                }
-                throw new InvalidMiddlewareException(
-                    'Container resolved an invalid middleware for id "' . $middleware . '".'
-                );
-            }
-
             if (class_exists($middleware)) {
                 if (!is_subclass_of($middleware, MiddlewareInterface::class)) {
                     throw new InvalidMiddlewareException(
@@ -43,6 +33,11 @@ final class DefaultResolver implements MiddlewareResolverInterface
                 }
 
                 return new $middleware();
+            }
+
+            if ($this->container !== null) {
+                $containerResolver = new ContainerResolver($this->container);
+                return $containerResolver->resolve($middleware);
             }
         }
 

@@ -10,6 +10,8 @@ use Lvandi\Chainer\ArrayResolver;
 use Lvandi\Chainer\Exception\EmptyQueueException;
 use Lvandi\Chainer\Exception\InvalidMiddlewareException;
 use Lvandi\Chainer\Exception\NoRemainingMiddlewareException;
+use Lvandi\Chainer\ContainerResolver;
+use Lvandi\Chainer\ResolverChain;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -125,6 +127,65 @@ final class ChainerTest extends TestCase
 
         $resolver = new DefaultResolver($container);
         $chainer = new Chainer(['bad.middleware'], $resolver);
+
+        $this->expectException(InvalidMiddlewareException::class);
+        $chainer->handle($request);
+    }
+
+    public function test_container_resolver_requires_string_id(): void
+    {
+        $request = $this->createMock(ServerRequestInterface::class);
+        $container = $this->createMock(ContainerInterface::class);
+
+        $resolver = new ContainerResolver($container);
+        $chainer = new Chainer([new \stdClass()], $resolver);
+
+        $this->expectException(InvalidMiddlewareException::class);
+        $chainer->handle($request);
+    }
+
+    public function test_container_resolver_requires_existing_id(): void
+    {
+        $request = $this->createMock(ServerRequestInterface::class);
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('has')->with('missing')->willReturn(false);
+
+        $resolver = new ContainerResolver($container);
+        $chainer = new Chainer(['missing'], $resolver);
+
+        $this->expectException(InvalidMiddlewareException::class);
+        $chainer->handle($request);
+    }
+
+    public function test_resolver_chain_uses_first_matching_resolver(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $request = $this->createMock(ServerRequestInterface::class);
+        $middleware = new TerminalMiddleware($response);
+
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('has')->with('middleware.id')->willReturn(true);
+        $container->method('get')->with('middleware.id')->willReturn($middleware);
+
+        $resolver = new ResolverChain([
+            new ContainerResolver($container),
+            new DefaultResolver(),
+        ]);
+
+        $chainer = new Chainer(['middleware.id'], $resolver);
+
+        $this->assertSame($response, $chainer->handle($request));
+    }
+
+    public function test_resolver_chain_throws_if_none_can_resolve(): void
+    {
+        $request = $this->createMock(ServerRequestInterface::class);
+
+        $resolver = new ResolverChain([
+            new DefaultResolver(),
+        ]);
+
+        $chainer = new Chainer([new \stdClass()], $resolver);
 
         $this->expectException(InvalidMiddlewareException::class);
         $chainer->handle($request);
