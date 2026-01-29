@@ -119,12 +119,24 @@ $chainer = new Chainer($queue, $resolver);
 docker-compose run --rm test
 ```
 
+Or with Makefile:
+
+```bash
+make test
+```
+
 ## Code Coverage
 
 Coverage via Docker:
 
 ```bash
 docker-compose run --rm test composer test-coverage
+```
+
+Or with Makefile:
+
+```bash
+make coverage
 ```
 
 ## Error Handling

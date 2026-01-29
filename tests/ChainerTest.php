@@ -138,6 +138,7 @@ final class ChainerTest extends TestCase
         $container = $this->createMock(ContainerInterface::class);
 
         $resolver = new ContainerResolver($container);
+        /** @phpstan-ignore-next-line */
         $chainer = new Chainer([new \stdClass()], $resolver);
 
         $this->expectException(InvalidMiddlewareException::class);
@@ -185,6 +186,7 @@ final class ChainerTest extends TestCase
             new DefaultResolver(),
         ]);
 
+        /** @phpstan-ignore-next-line */
         $chainer = new Chainer([new \stdClass()], $resolver);
 
         $this->expectException(InvalidMiddlewareException::class);
