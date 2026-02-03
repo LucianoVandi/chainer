@@ -1,0 +1,37 @@
+name: Quality
+
+on:
+  push:
+    paths:
+      - '**.php'
+      - '.github/workflows/quality.yml'
+      - 'phpunit.xml.dist'
+      - 'phpunit.coverage.xml'
+      - 'phpstan.neon'
+      - 'composer.json'
+      - 'composer.lock'
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.5
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo, pcov
+          coverage: pcov
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction
+
+      - name: Run tests with coverage
+        run: composer test-coverage
+
+      - name: Run PHPStan
+        run: composer analyse
