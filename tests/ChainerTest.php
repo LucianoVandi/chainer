@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Lvandi\Chainer\Tests;
 
-use Lvandi\Chainer\Chainer;
-use Lvandi\Chainer\DefaultResolver;
 use Lvandi\Chainer\ArrayResolver;
+use Lvandi\Chainer\Chainer;
+use Lvandi\Chainer\ContainerResolver;
+use Lvandi\Chainer\DefaultResolver;
 use Lvandi\Chainer\Exception\EmptyQueueException;
 use Lvandi\Chainer\Exception\InvalidMiddlewareException;
 use Lvandi\Chainer\Exception\NoRemainingMiddlewareException;
-use Lvandi\Chainer\ContainerResolver;
 use Lvandi\Chainer\ResolverChain;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
@@ -213,7 +213,6 @@ final class ChainerTest extends TestCase
 
         $this->assertSame($response, $chainer->handle($request));
     }
-
 }
 
 final class TerminalMiddleware implements MiddlewareInterface

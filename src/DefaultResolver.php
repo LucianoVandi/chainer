@@ -26,7 +26,7 @@ final class DefaultResolver implements MiddlewareResolverInterface
 
         if (is_string($middleware)) {
             if (class_exists($middleware)) {
-                if (!is_subclass_of($middleware, MiddlewareInterface::class)) {
+                if (! is_subclass_of($middleware, MiddlewareInterface::class)) {
                     throw new InvalidMiddlewareException(
                         'Class "' . $middleware . '" must implement ' . MiddlewareInterface::class . '.'
                     );
@@ -37,6 +37,7 @@ final class DefaultResolver implements MiddlewareResolverInterface
 
             if ($this->container !== null) {
                 $containerResolver = new ContainerResolver($this->container);
+
                 return $containerResolver->resolve($middleware);
             }
         }

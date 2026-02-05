@@ -52,14 +52,13 @@ class Chainer implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         // Verifica se la coda è esaurita o se non ci sono middleware disponibili.
-        if (empty($this->queue) || !array_key_exists($this->position, $this->queue)) {
+        if (empty($this->queue) || ! array_key_exists($this->position, $this->queue)) {
             throw new NoRemainingMiddlewareException('No remaining middleware in the queue.');
         }
 
         // Continua l'elaborazione se c'è almeno un middleware nella coda.
         return $this->nextMiddleware()->process($request, $this);
     }
-
 
     /**
      * Ottiene il prossimo middleware dalla coda.

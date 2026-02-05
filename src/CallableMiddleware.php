@@ -28,7 +28,7 @@ final class CallableMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $response = ($this->callable)($request, $handler);
-        if (!$response instanceof ResponseInterface) {
+        if (! $response instanceof ResponseInterface) {
             throw new InvalidMiddlewareException(
                 'Callable middleware must return a ' . ResponseInterface::class . '.'
             );

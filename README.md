@@ -22,6 +22,8 @@ You can install the package via composer:
 composer require lvandi/chainer
 ```
 
+Requirements: PHP 8.4+
+
 ## Usage
 
 ```php
