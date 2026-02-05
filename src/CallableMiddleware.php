@@ -13,12 +13,12 @@ use Psr\Http\Server\RequestHandlerInterface;
 final class CallableMiddleware implements MiddlewareInterface
 {
     /**
-     * @var callable(ServerRequestInterface, RequestHandlerInterface): ResponseInterface
+     * @var callable(ServerRequestInterface, RequestHandlerInterface): mixed
      */
     private $callable;
 
     /**
-     * @param callable(ServerRequestInterface, RequestHandlerInterface): ResponseInterface $callable
+     * @param callable(ServerRequestInterface, RequestHandlerInterface): mixed $callable
      */
     public function __construct(callable $callable)
     {
