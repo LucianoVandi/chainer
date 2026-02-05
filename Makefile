@@ -1,4 +1,4 @@
-.PHONY: help install test coverage analyse format
+.PHONY: help install test coverage analyse format format-check
 
 help:
 	@printf "Targets:\n"
@@ -22,3 +22,6 @@ analyse:
 
 format:
 	docker-compose run --rm test composer format
+
+format-check:
+	docker-compose run --rm test composer format-check

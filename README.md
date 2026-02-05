@@ -1,8 +1,9 @@
 # This is my package chainer
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/luciano/chainer.svg?style=flat-square)](https://packagist.org/packages/luciano/chainer)
-[![Tests](https://img.shields.io/github/actions/workflow/status/luciano/chainer/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/luciano/chainer/actions/workflows/run-tests.yml)
-[![Total Downloads](https://img.shields.io/packagist/dt/luciano/chainer.svg?style=flat-square)](https://packagist.org/packages/luciano/chainer)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/lvandi/chainer.svg?style=flat-square)](https://packagist.org/packages/lvandi/chainer)
+[![Tests](https://img.shields.io/github/actions/workflow/status/LucianoVandi/chainer/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/LucianoVandi/chainer/actions/workflows/run-tests.yml)
+[![Quality](https://img.shields.io/github/actions/workflow/status/LucianoVandi/chainer/quality.yml?branch=main&label=quality&style=flat-square)](https://github.com/LucianoVandi/chainer/actions/workflows/quality.yml)
+[![Total Downloads](https://img.shields.io/packagist/dt/lvandi/chainer.svg?style=flat-square)](https://packagist.org/packages/lvandi/chainer)
 
 Chainer is a tiny PSR-15 middleware queue. It takes an ordered list of middleware and
 executes them in sequence, acting as the request handler for the chain.
@@ -125,6 +126,17 @@ Or with Makefile:
 
 ```bash
 make test
+```
+
+## Commands
+
+```bash
+make install
+make test
+make coverage
+make analyse
+make format
+make format-check
 ```
 
 ## Code Coverage

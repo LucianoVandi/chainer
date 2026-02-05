@@ -1,10 +1,10 @@
 {
-    "name": "luciano/chainer",
+    "name": "lvandi/chainer",
     "description": "This is my package chainer",
     "keywords": [
         "chainer"
     ],
-    "homepage": "https://github.com/luciano/chainer",
+    "homepage": "https://github.com/LucianoVandi/chainer",
     "license": "MIT",
     "authors": [
         {
@@ -41,6 +41,7 @@
         "test": "vendor/bin/phpunit",
         "test-coverage": "vendor/bin/phpunit -c phpunit.coverage.xml --coverage-text",
         "format": "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --allow-risky=yes",
+        "format-check": "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --allow-risky=yes --dry-run --diff",
         "analyse": "vendor/bin/phpstan analyse"
     },
     "config": {

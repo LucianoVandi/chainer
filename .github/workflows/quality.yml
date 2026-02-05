@@ -35,3 +35,6 @@ jobs:
 
       - name: Run PHPStan
         run: composer analyse
+
+      - name: Check code style
+        run: composer format-check
