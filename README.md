@@ -3,6 +3,7 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/lvandi/chainer.svg?style=flat-square)](https://packagist.org/packages/lvandi/chainer)
 [![Tests](https://img.shields.io/github/actions/workflow/status/LucianoVandi/chainer/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/LucianoVandi/chainer/actions/workflows/run-tests.yml)
 [![Quality](https://img.shields.io/github/actions/workflow/status/LucianoVandi/chainer/quality.yml?branch=main&label=quality&style=flat-square)](https://github.com/LucianoVandi/chainer/actions/workflows/quality.yml)
+[![Coverage](https://codecov.io/gh/LucianoVandi/chainer/branch/main/graph/badge.svg)](https://codecov.io/gh/LucianoVandi/chainer)
 [![Total Downloads](https://img.shields.io/packagist/dt/lvandi/chainer.svg?style=flat-square)](https://packagist.org/packages/lvandi/chainer)
 
 Chainer is a tiny PSR-15 middleware queue. It takes an ordered list of middleware and
