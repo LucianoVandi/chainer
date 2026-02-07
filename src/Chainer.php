@@ -162,6 +162,7 @@ class Chainer implements RequestHandlerInterface
         foreach ($this->queue as $entry) {
             if ($entry['name'] !== null) {
                 $items[] = $entry['name'];
+
                 continue;
             }
 
@@ -232,6 +233,7 @@ class Chainer implements RequestHandlerInterface
                     'name' => $name,
                     'middleware' => $middleware,
                 ];
+
                 continue;
             }
 
