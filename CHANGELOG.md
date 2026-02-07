@@ -2,6 +2,14 @@
 
 All notable changes to `Chainer` will be documented in this file.
 
+## v0.2.1 - 2026-02-07
+
+### What's Changed
+
+* feat: add conditional and named middleware by @LucianoVandi in https://github.com/LucianoVandi/chainer/pull/8
+
+**Full Changelog**: https://github.com/LucianoVandi/chainer/compare/v0.2.0...v0.2.1
+
 ## v0.2.0 - 2026-02-07
 
 New middleware orchestration features.
