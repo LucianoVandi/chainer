@@ -2,6 +2,24 @@
 
 All notable changes to `Chainer` will be documented in this file.
 
+## v0.2.0 - 2026-02-07
+
+New middleware orchestration features.
+
+Highlights:
+
+- Conditional middleware: when/unless helpers
+- Named middleware with add/remove/replace/has
+- Introspection via toArray()/debug()
+- Test suite reorganized with support helpers
+- 100% coverage and PHPStan clean
+
+Maintenance:
+
+- Style cleanup in Chainer
+
+**Full Changelog**: https://github.com/LucianoVandi/chainer/compare/v0.1.1...v0.2.0
+
 ## v0.1.1 - 2026-02-05
 
 ### What's Changed
