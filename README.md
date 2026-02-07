@@ -54,6 +54,38 @@ $chainer = new Chainer($queue);
 $result = $chainer->handle($request);
 ```
 
+### Conditional Middleware
+
+```php
+$chainer->when(
+    fn (ServerRequestInterface $request): bool => $request->getMethod() === 'POST',
+    new AuditMiddleware()
+);
+
+$chainer->unless(
+    fn (ServerRequestInterface $request): bool => $request->getAttribute('is_admin') === true,
+    new RequireAdminMiddleware()
+);
+```
+
+### Named Middleware
+
+```php
+$chainer->add('auth', new AuthMiddleware());
+$chainer->add('rate_limit', new RateLimitMiddleware());
+
+$chainer->has('auth');      // true
+$chainer->replace('auth', new JwtAuthMiddleware());
+$chainer->remove('rate_limit');
+```
+
+### Introspection
+
+```php
+$chainer->toArray(); // ['auth', 'rate_limit']
+$chainer->debug();   // same as toArray()
+```
+
 ### Example: Two Middleware + Terminal
 
 ```php

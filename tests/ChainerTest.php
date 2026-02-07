@@ -12,11 +12,15 @@ use Lvandi\Chainer\Exception\EmptyQueueException;
 use Lvandi\Chainer\Exception\InvalidMiddlewareException;
 use Lvandi\Chainer\Exception\NoRemainingMiddlewareException;
 use Lvandi\Chainer\ResolverChain;
+use Lvandi\Chainer\Tests\Support\CallableArrayTarget;
+use Lvandi\Chainer\Tests\Support\InvokableMiddleware;
+use Lvandi\Chainer\Tests\Support\PassThroughMiddleware;
+use Lvandi\Chainer\Tests\Support\SpyMiddleware;
+use Lvandi\Chainer\Tests\Support\TerminalMiddleware;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 final class ChainerTest extends TestCase
@@ -213,35 +217,186 @@ final class ChainerTest extends TestCase
 
         $this->assertSame($response, $chainer->handle($request));
     }
-}
 
-final class TerminalMiddleware implements MiddlewareInterface
-{
-    public function __construct(private ResponseInterface $response)
+    public function test_when_executes_middleware_when_condition_is_true(): void
     {
+        $request = $this->createMock(ServerRequestInterface::class);
+        $response = $this->createMock(ResponseInterface::class);
+
+        $spy = new SpyMiddleware();
+        $chainer = new Chainer([new PassThroughMiddleware()]);
+        $chainer->when(fn (ServerRequestInterface $request): bool => true, $spy);
+        $chainer->add(new TerminalMiddleware($response));
+
+        $this->assertSame($response, $chainer->handle($request));
+        $this->assertTrue($spy->wasCalled());
     }
 
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    public function test_when_skips_middleware_when_condition_is_false(): void
     {
-        return $this->response;
+        $request = $this->createMock(ServerRequestInterface::class);
+        $response = $this->createMock(ResponseInterface::class);
+
+        $spy = new SpyMiddleware();
+        $chainer = new Chainer([new PassThroughMiddleware()]);
+        $chainer->when(fn (ServerRequestInterface $request): bool => false, $spy);
+        $chainer->add(new TerminalMiddleware($response));
+
+        $this->assertSame($response, $chainer->handle($request));
+        $this->assertFalse($spy->wasCalled());
     }
-}
 
-final class InvokableMiddleware implements MiddlewareInterface
-{
-    private static ?ResponseInterface $response = null;
-
-    public static function setResponse(ResponseInterface $response): void
+    public function test_unless_executes_middleware_when_condition_is_false(): void
     {
-        self::$response = $response;
+        $request = $this->createMock(ServerRequestInterface::class);
+        $response = $this->createMock(ResponseInterface::class);
+
+        $spy = new SpyMiddleware();
+        $chainer = new Chainer([new PassThroughMiddleware()]);
+        $chainer->unless(fn (ServerRequestInterface $request): bool => false, $spy);
+        $chainer->add(new TerminalMiddleware($response));
+
+        $this->assertSame($response, $chainer->handle($request));
+        $this->assertTrue($spy->wasCalled());
     }
 
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    public function test_unless_skips_middleware_when_condition_is_true(): void
     {
-        if (self::$response === null) {
-            throw new \RuntimeException('Response not set.');
-        }
+        $request = $this->createMock(ServerRequestInterface::class);
+        $response = $this->createMock(ResponseInterface::class);
 
-        return self::$response;
+        $spy = new SpyMiddleware();
+        $chainer = new Chainer([new PassThroughMiddleware()]);
+        $chainer->unless(fn (ServerRequestInterface $request): bool => true, $spy);
+        $chainer->add(new TerminalMiddleware($response));
+
+        $this->assertSame($response, $chainer->handle($request));
+        $this->assertFalse($spy->wasCalled());
+    }
+
+    public function test_named_middleware_operations(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $request = $this->createMock(ServerRequestInterface::class);
+
+        $chainer = new Chainer(['auth' => new TerminalMiddleware($response)]);
+
+        $this->assertTrue($chainer->has('auth'));
+        $this->assertSame(['auth'], $chainer->toArray());
+        $this->assertCount(1, $chainer->all());
+
+        $chainer->add('rate_limit', new PassThroughMiddleware());
+        $this->assertSame(['auth', 'rate_limit'], $chainer->debug());
+        $this->assertCount(2, $chainer->all());
+
+        $replacement = new TerminalMiddleware($response);
+        $chainer->replace('auth', $replacement);
+        $this->assertSame($response, $chainer->handle($request));
+
+        $chainer->remove('rate_limit');
+        $this->assertSame(['auth'], $chainer->toArray());
+    }
+
+    public function test_duplicate_named_middleware_throws(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+
+        $chainer = new Chainer(['auth' => new TerminalMiddleware($response)]);
+
+        $this->expectException(InvalidMiddlewareException::class);
+        $chainer->add('auth', new PassThroughMiddleware());
+    }
+
+    public function test_remove_unknown_name_throws(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+
+        $chainer = new Chainer([new TerminalMiddleware($response)]);
+
+        $this->expectException(InvalidMiddlewareException::class);
+        $chainer->remove('missing');
+    }
+
+    public function test_replace_unknown_name_throws(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+
+        $chainer = new Chainer([new TerminalMiddleware($response)]);
+
+        $this->expectException(InvalidMiddlewareException::class);
+        $chainer->replace('missing', new PassThroughMiddleware());
+    }
+
+    public function test_to_array_describes_unnamed_middleware(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+
+        $callableArray = [new CallableArrayTarget(), 'handle'];
+        $closure = function (): void {
+        };
+
+        $chainer = new Chainer([
+            InvokableMiddleware::class,
+            new TerminalMiddleware($response),
+            $callableArray,
+            $closure,
+        ]);
+
+        $this->assertSame([
+            InvokableMiddleware::class,
+            TerminalMiddleware::class,
+            'callable',
+            'closure',
+        ], $chainer->toArray());
+    }
+
+    public function test_debug_is_alias_of_to_array(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+
+        $chainer = new Chainer([new TerminalMiddleware($response)]);
+
+        $this->assertSame($chainer->toArray(), $chainer->debug());
+    }
+
+    public function test_add_accepts_string_middleware_and_unknown_types_for_debug(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+
+        $chainer = new Chainer([new TerminalMiddleware($response)]);
+        $chainer->add('custom.middleware');
+        /** @phpstan-ignore-next-line */
+        $chainer->add(new \stdClass());
+
+        $this->assertSame([
+            TerminalMiddleware::class,
+            'custom.middleware',
+            \stdClass::class,
+        ], $chainer->toArray());
+    }
+
+    public function test_has_returns_false_when_missing(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+
+        $chainer = new Chainer(['auth' => new TerminalMiddleware($response)]);
+
+        $this->assertFalse($chainer->has('missing'));
+    }
+
+    public function test_remove_adjusts_position_when_removing_processed_middleware(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $request = $this->createMock(ServerRequestInterface::class);
+
+        $chainer = new Chainer([
+            'first' => new PassThroughMiddleware(),
+            'second' => new TerminalMiddleware($response),
+        ]);
+
+        $this->assertSame($response, $chainer->handle($request));
+
+        $chainer->remove('first');
+        $this->assertSame(['second'], $chainer->toArray());
     }
 }
