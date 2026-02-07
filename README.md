@@ -75,14 +75,19 @@ $chainer->add('auth', new AuthMiddleware());
 $chainer->add('rate_limit', new RateLimitMiddleware());
 
 $chainer->has('auth');      // true
-$chainer->replace('auth', new JwtAuthMiddleware());
+$chainer->alias('auth', new JwtAuthMiddleware());
 $chainer->remove('rate_limit');
 ```
 
 ### Introspection
 
 ```php
+$chainer->disable('auth');
+$chainer->toArray(); // ['auth (disabled)', 'rate_limit']
+
+$chainer->enable('auth');
 $chainer->toArray(); // ['auth', 'rate_limit']
+
 $chainer->debug();   // same as toArray()
 ```
 

@@ -15,7 +15,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 class Chainer implements RequestHandlerInterface
 {
     /**
-     * @var array<int, array{name: string|null, middleware: MiddlewareInterface|callable|string}>
+     * @var array<int, array{name: string|null, middleware: MiddlewareInterface|callable|string, enabled: bool}>
      */
     private array $queue;
 
@@ -76,6 +76,7 @@ class Chainer implements RequestHandlerInterface
             $this->queue[] = [
                 'name' => $nameOrMiddleware,
                 'middleware' => $maybeMiddleware,
+                'enabled' => true,
             ];
 
             return $this;
@@ -84,9 +85,52 @@ class Chainer implements RequestHandlerInterface
         $this->queue[] = [
             'name' => null,
             'middleware' => $nameOrMiddleware,
+            'enabled' => true,
         ];
 
         return $this;
+    }
+
+    /**
+     * Alias semantico di replace() per sostituire un middleware.
+     *
+     * @param MiddlewareInterface|callable|string $middleware
+     */
+    public function alias(string $name, $middleware): self
+    {
+        return $this->replace($name, $middleware);
+    }
+
+    /**
+     * Disabilita un middleware per nome.
+     */
+    public function disable(string $name): self
+    {
+        foreach ($this->queue as $index => $entry) {
+            if ($entry['name'] === $name) {
+                $this->queue[$index]['enabled'] = false;
+
+                return $this;
+            }
+        }
+
+        throw new InvalidMiddlewareException('Middleware with name "' . $name . '" not found.');
+    }
+
+    /**
+     * Abilita un middleware per nome.
+     */
+    public function enable(string $name): self
+    {
+        foreach ($this->queue as $index => $entry) {
+            if ($entry['name'] === $name) {
+                $this->queue[$index]['enabled'] = true;
+
+                return $this;
+            }
+        }
+
+        throw new InvalidMiddlewareException('Middleware with name "' . $name . '" not found.');
     }
 
     /**
@@ -144,7 +188,7 @@ class Chainer implements RequestHandlerInterface
     /**
      * Ritorna la lista completa dei middleware (con nomi).
      *
-     * @return array<int, array{name: string|null, middleware: MiddlewareInterface|callable|string}>
+     * @return array<int, array{name: string|null, middleware: MiddlewareInterface|callable|string, enabled: bool}>
      */
     public function all(): array
     {
@@ -161,7 +205,7 @@ class Chainer implements RequestHandlerInterface
         $items = [];
         foreach ($this->queue as $entry) {
             if ($entry['name'] !== null) {
-                $items[] = $entry['name'];
+                $items[] = $entry['name'] . ($entry['enabled'] ? '' : ' (disabled)');
 
                 continue;
             }
@@ -209,19 +253,23 @@ class Chainer implements RequestHandlerInterface
      */
     private function nextMiddleware(): MiddlewareInterface
     {
-        $entry = $this->queue[$this->position];
-        $middleware = $entry['middleware'];
+        while (array_key_exists($this->position, $this->queue)) {
+            $entry = $this->queue[$this->position];
+            $this->position++;
 
-        $resolvedMiddleware = $this->resolver->resolve($middleware);
+            if (! $entry['enabled']) {
+                continue;
+            }
 
-        $this->position++;
+            return $this->resolver->resolve($entry['middleware']);
+        }
 
-        return $resolvedMiddleware;
+        throw new NoRemainingMiddlewareException('No remaining middleware in the queue.');
     }
 
     /**
      * @param array<int|string, MiddlewareInterface|callable|string> $queue
-     * @return array<int, array{name: string|null, middleware: MiddlewareInterface|callable|string}>
+     * @return array<int, array{name: string|null, middleware: MiddlewareInterface|callable|string, enabled: bool}>
      */
     private function normalizeQueue(array $queue): array
     {
@@ -232,6 +280,7 @@ class Chainer implements RequestHandlerInterface
                 $normalized[] = [
                     'name' => $name,
                     'middleware' => $middleware,
+                    'enabled' => true,
                 ];
 
                 continue;
@@ -240,6 +289,7 @@ class Chainer implements RequestHandlerInterface
             $normalized[] = [
                 'name' => null,
                 'middleware' => $middleware,
+                'enabled' => true,
             ];
         }
 
@@ -247,7 +297,7 @@ class Chainer implements RequestHandlerInterface
     }
 
     /**
-     * @param array<int, array{name: string|null, middleware: MiddlewareInterface|callable|string}>|null $queue
+     * @param array<int, array{name: string|null, middleware: MiddlewareInterface|callable|string, enabled: bool}>|null $queue
      */
     private function assertNameAvailable(string $name, ?array $queue = null): void
     {

@@ -290,7 +290,7 @@ final class ChainerTest extends TestCase
         $this->assertCount(2, $chainer->all());
 
         $replacement = new TerminalMiddleware($response);
-        $chainer->replace('auth', $replacement);
+        $chainer->alias('auth', $replacement);
         $this->assertSame($response, $chainer->handle($request));
 
         $chainer->remove('rate_limit');
@@ -325,6 +325,59 @@ final class ChainerTest extends TestCase
 
         $this->expectException(InvalidMiddlewareException::class);
         $chainer->replace('missing', new PassThroughMiddleware());
+    }
+
+    public function test_disable_and_enable_named_middleware(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $request = $this->createMock(ServerRequestInterface::class);
+
+        $chainer = new Chainer([
+            'auth' => new PassThroughMiddleware(),
+            'terminal' => new TerminalMiddleware($response),
+        ]);
+
+        $chainer->disable('auth');
+        $this->assertSame(['auth (disabled)', 'terminal'], $chainer->toArray());
+
+        $this->assertSame($response, $chainer->handle($request));
+
+        $chainer->enable('auth');
+        $this->assertSame(['auth', 'terminal'], $chainer->toArray());
+    }
+
+    public function test_disable_unknown_name_throws(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+
+        $chainer = new Chainer(['auth' => new TerminalMiddleware($response)]);
+
+        $this->expectException(InvalidMiddlewareException::class);
+        $chainer->disable('missing');
+    }
+
+    public function test_enable_unknown_name_throws(): void
+    {
+        $response = $this->createMock(ResponseInterface::class);
+
+        $chainer = new Chainer(['auth' => new TerminalMiddleware($response)]);
+
+        $this->expectException(InvalidMiddlewareException::class);
+        $chainer->enable('missing');
+    }
+
+    public function test_handle_throws_when_all_middleware_are_disabled(): void
+    {
+        $request = $this->createMock(ServerRequestInterface::class);
+
+        $chainer = new Chainer([
+            'auth' => new PassThroughMiddleware(),
+        ]);
+
+        $chainer->disable('auth');
+
+        $this->expectException(NoRemainingMiddlewareException::class);
+        $chainer->handle($request);
     }
 
     public function test_to_array_describes_unnamed_middleware(): void
